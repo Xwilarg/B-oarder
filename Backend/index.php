@@ -2,11 +2,7 @@
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
-use Boarder\Database;
-
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
+use Boarder\Database\Database;
 
 require __DIR__ . '/vendor/autoload.php';
 
@@ -20,7 +16,11 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 $app->get('/data/{name}/{data}', function (Request $request, Response $response, $args) {
     $name = $args['name'];
     $data = $args['data'];
-    $res = new Database().get("SELECT amount FROM data WHERE id = ? and user_id = ?", $data, $name);
+    $res = (new Database())->get("SELECT amount FROM data WHERE id = ? and user_id = ?", $data, $name);
+    if ($res === false) {
+        $response->withStatus(400);
+        return $response;
+    }
     $response->getBody()->write($res);
     return $response;
 });
